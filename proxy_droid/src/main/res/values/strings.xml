@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">proxy_droid</string>
+
+    <string name="profile_base">Profile</string>
+
+
+    <string name="service_running">在后台运行</string>
+    <string name="forward_success">连接的</string>
+
+    <!-- Connection errors -->
+    <string name="msg_pac_error">Incorrect or unsupported PAC file</string>
+    <string name="msg_resolve_error">Incorrect or unknown proxy host name</string>
+</resources>
