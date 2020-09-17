@@ -41,7 +41,7 @@ public class ProxyManager {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                resetProxy(context);
+                resetAndLoadProxy(context);
             }
         }).start();
     }
@@ -114,7 +114,16 @@ public class ProxyManager {
         return true;
     }
 
-    private void resetProxy(Context context) {
+    public void resetProxy(Context context){
+        String filePath = context.getFilesDir().getAbsolutePath();
+        Utils.runRootCommand(Utils.getIptables()
+                + " -t nat -F OUTPUT\n"
+                + context.getFilesDir().getAbsolutePath()
+                + "/proxy.sh stop\n"
+                + "kill -9 `cat " + filePath + "cntlm.pid`\n");
+    }
+
+    private void resetAndLoadProxy(Context context) {
         try {
             context.stopService(new Intent(context, ProxyDroidService.class));
         } catch (Exception e) {

@@ -1,12 +1,12 @@
 package com.ccbfm.proxy;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.ccbfm.proxy.droid.ProxyManager;
 
@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         // Example of a call to a native method
         TextView tv = findViewById(R.id.sample_text);
         tv.setText(stringFromJNI());
+
     }
 
     /**
@@ -58,4 +59,5 @@ public class MainActivity extends AppCompatActivity {
      * which is packaged with this application.
      */
     public native String stringFromJNI();
+
 }
