@@ -107,6 +107,17 @@ public class ProxyDroidExecutor {
         }
     }
 
+    private void callbackResult(boolean isProxy){
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if(mProxyCallback != null){
+                    mProxyCallback.callback(isProxy);
+                }
+            }
+        });
+    }
+
     public ProxyDroidExecutor(Context context) {
         mContext = context;
         basePath = context.getFilesDir().getAbsolutePath() + "/";
@@ -165,15 +176,11 @@ public class ProxyDroidExecutor {
                     notifyAlert(mContext.getString(R.string.forward_success),
                             mContext.getString(R.string.service_running));
 
-                    if(mProxyCallback != null){
-                        mProxyCallback.callback(true);
-                    }
+                    callbackResult(true);
                     mHandler.sendEmptyMessage(MSG_CONNECT_SUCCESS);
                 } else {
                     mHandler.sendEmptyMessage(MSG_CONNECT_FAIL);
-                    if(mProxyCallback != null){
-                        mProxyCallback.callback(false);
-                    }
+                    callbackResult(false);
                 }
                 mHandler.sendEmptyMessage(MSG_CONNECT_FINISH);
             }
