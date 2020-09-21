@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -20,21 +19,21 @@ public class ProxyManager {
     private volatile boolean mInit = false;
     private static final String PROXY_INIT = "proxy_init";
 
-    private ProxyManager(){
+    private ProxyManager() {
     }
 
-    private static class Singleton{
+    private static class Singleton {
         private static final ProxyManager INSTANCE = new ProxyManager();
     }
 
-    public static ProxyManager instance(){
+    public static ProxyManager instance() {
         return Singleton.INSTANCE;
     }
 
-    public void init(final Context context){
+    public void init(final Context context) {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         boolean init = settings.getBoolean(PROXY_INIT, false);
-        if(init){
+        if (init) {
             mInit = true;
             return;
         }
@@ -46,17 +45,14 @@ public class ProxyManager {
         }).start();
     }
 
-    private boolean startProxy(Context context) {
+    private ProxyDroidExecutor mProxyDroidExecutor;
 
-        if (Utils.isWorking()) return false;
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-        Profile profile = new Profile();
-        profile.getProfile(settings);
-        return startProxy(context, profile);
-    }
-
-    public boolean startProxy(Context context, String host, int port) {
-        if (Utils.isWorking()) return false;
+    public boolean startProxy(Context context, String host, int port, ProxyDroidExecutor.ProxyCallback callback) {
+        Log.e(TAG, "startProxy---mInit= " + mInit);
+        if (!mInit) {
+            Toast.makeText(context, "初始化未完成，请稍后！", Toast.LENGTH_LONG).show();
+            return false;
+        }
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         Profile profile = new Profile();
         profile.getProfile(settings);
@@ -65,56 +61,23 @@ public class ProxyManager {
         profile.setAutoSetProxy(true);
         profile.setProxyType("socks5");
         profile.setProfile(settings);
-        return startProxy(context, profile);
-    }
-
-    public boolean startProxy(Context context, Profile profile){
-        Log.e(TAG, "startProxy---mInit= " + mInit);
-        if(!mInit){
-            Toast.makeText(context, "初始化未完成，请稍后！", Toast.LENGTH_LONG).show();
-            return false;
+        if(mProxyDroidExecutor == null) {
+            mProxyDroidExecutor = new ProxyDroidExecutor(context);
         }
-        try {
-            Log.w(TAG, "startProxy--profile = " + profile);
-            Intent it = new Intent(context, ProxyDroidService.class);
-            Bundle bundle = new Bundle();
-            bundle.putString("host", profile.getHost());
-            bundle.putString("user", profile.getUser());
-            bundle.putString("bypassAddrs", profile.getBypassAddrs());
-            bundle.putString("password", profile.getPassword());
-            bundle.putString("domain", profile.getDomain());
-            bundle.putString("certificate", profile.getCertificate());
-
-            bundle.putString("proxyType", profile.getProxyType());
-            bundle.putBoolean("isAutoSetProxy", profile.isAutoSetProxy());
-            bundle.putBoolean("isBypassApps", profile.isBypassApps());
-            bundle.putBoolean("isAuth", profile.isAuth());
-            bundle.putBoolean("isNTLM", profile.isNTLM());
-            bundle.putBoolean("isDNSProxy", profile.isDNSProxy());
-            bundle.putInt("port", profile.getPort());
-            it.putExtras(bundle);
-            context.startService(it);
-        } catch (Exception e) {
-            // Nothing
-            Log.e(TAG, "Exception-" , e);
-            return false;
-        }
+        mProxyDroidExecutor.setProxyCallback(callback);
+        mProxyDroidExecutor.executeProxy();
         return true;
     }
 
-    public boolean stopProxy(Context context) {
-
-        if (!Utils.isWorking()) return false;
-
-        try {
-            context.stopService(new Intent(context, ProxyDroidService.class));
-        } catch (Exception e) {
-            return false;
+    public boolean stopProxy() {
+        if (mProxyDroidExecutor != null) {
+            mProxyDroidExecutor.stopProxy();
+            return true;
         }
-        return true;
+        return false;
     }
 
-    public void resetProxy(Context context){
+    public void resetProxy(Context context) {
         String filePath = context.getFilesDir().getAbsolutePath();
         Utils.runRootCommand(Utils.getIptables()
                 + " -t nat -F OUTPUT\n"

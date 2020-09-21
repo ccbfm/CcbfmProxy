@@ -250,6 +250,13 @@ public class Utils {
 
   private synchronized static int runScript(String script, StringBuilder res,
                                             long timeout, boolean asroot) {
+      int result = runScript2(script, res, timeout, asroot);
+      Log.w(TAG, "runScript2-result = " + result);
+      return result;
+  }
+
+  private synchronized static int runScript2(String script, StringBuilder res,
+                                            long timeout, boolean asroot) {
     final ScriptRunner runner = new ScriptRunner(script, res, asroot);
     runner.start();
     try {

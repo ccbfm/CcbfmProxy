@@ -2,12 +2,14 @@ package com.ccbfm.proxy;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.ccbfm.proxy.droid.ProxyDroidExecutor;
 import com.ccbfm.proxy.droid.ProxyManager;
 
 public class MainActivity extends AppCompatActivity {
@@ -38,14 +40,19 @@ public class MainActivity extends AppCompatActivity {
                 if(TextUtils.isEmpty(host) || port <= 0){
                     return;
                 }
-                ProxyManager.instance().startProxy(MainActivity.this, host, port);
+                ProxyManager.instance().startProxy(MainActivity.this, host, port, new ProxyDroidExecutor.ProxyCallback() {
+                    @Override
+                    public void callback(boolean b) {
+                        Log.w("wds", "ProxyCallback-----b= " + b);
+                    }
+                });
             }
         });
         findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 //                ProxyDroid.serviceStop(MainActivity.this);
-                ProxyManager.instance().stopProxy(MainActivity.this);
+                ProxyManager.instance().stopProxy();
             }
         });
         // Example of a call to a native method
